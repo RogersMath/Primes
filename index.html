@@ -40,11 +40,15 @@
         <div id="timer">Time: 60s</div>
         <div id="primes">Primes: 0</div>
         <div id="research">Research: 0</div>
-        <div id="problem"></div>
-        <div id="answers"></div>
-        <div id="discoveries"></div>
-        <button id="start-round" style="display:none;">Start Next Round</button>
-        <button id="shard-prime" style="display:none;">Shard Prime</button>
+        <div id="harvest-mode">
+            <div id="problem"></div>
+            <div id="answers"></div>
+        </div>
+        <div id="research-mode" style="display:none;">
+            <div id="discoveries"></div>
+            <button id="start-round">Start Next Round</button>
+            <button id="shard-prime">Shard Prime</button>
+        </div>
     </div>
     <script>
         const gameState = {
@@ -89,6 +93,13 @@
                 answer = a - b;
             }
 
+            // Apply Order of Operations discovery effect
+            if (gameState.discoveries.orderOfOperations > 0 && Math.random() < 0.1 * gameState.discoveries.orderOfOperations) {
+                const c = Math.floor(Math.random() * 10) + 1;
+                problem = `${a} * ${b} + ${c}`;
+                answer = a * b + c;
+            }
+
             document.getElementById('problem').textContent = problem;
             
             const answers = [answer];
@@ -112,14 +123,31 @@
 
         function checkAnswer(userAnswer, correctAnswer) {
             if (userAnswer === correctAnswer) {
-                gameState.research += 1;
+                let researchGain = 1;
+                // Apply Core Properties discovery effect
+                researchGain += gameState.discoveries.coreProperties * 3;
+                // Apply Order of Operations discovery effect
+                if (gameState.discoveries.orderOfOperations > 0) {
+                    researchGain *= 2;
+                }
+                gameState.research += researchGain;
+                
                 if (isPrime(correctAnswer)) {
                     gameState.primes += 1;
+                    // Apply Factoring discovery effect
+                    if (gameState.discoveries.factoring > 0 && Math.random() < 0.5) {
+                        gameState.primes += 1;
+                    }
                     // Add prime harvesting animation here
                 }
-                updateDisplay();
-                generateProblem();
+            } else {
+                // Reduce research by 1 for incorrect answers
+                if (gameState.research > 0) {
+                    gameState.research -= 1;
+                }
             }
+            updateDisplay();
+            generateProblem();
         }
 
         function isPrime(num) {
@@ -133,13 +161,16 @@
         function startRound() {
             gameState.currentMode = 'harvest';
             gameState.timer = 60;
-            document.getElementById('start-round').style.display = 'none';
-            document.getElementById('shard-prime').style.display = 'none';
-            document.getElementById('answers').style.display = 'block';
+            document.getElementById('harvest-mode').style.display = 'block';
+            document.getElementById('research-mode').style.display = 'none';
             generateProblem();
 
             const timerInterval = setInterval(() => {
                 gameState.timer--;
+                // Apply Modulo discovery effect
+                if (gameState.discoveries.modulo > 0) {
+                    gameState.research += gameState.discoveries.modulo;
+                }
                 updateDisplay();
                 if (gameState.timer <= 0) {
                     clearInterval(timerInterval);
@@ -150,9 +181,8 @@
 
         function endRound() {
             gameState.currentMode = 'research';
-            document.getElementById('start-round').style.display = 'block';
-            document.getElementById('shard-prime').style.display = 'block';
-            document.getElementById('answers').style.display = 'none';
+            document.getElementById('harvest-mode').style.display = 'none';
+            document.getElementById('research-mode').style.display = 'block';
             displayDiscoveries();
         }
 
@@ -182,7 +212,10 @@
         function shardPrime() {
             if (gameState.primes > 0) {
                 gameState.primes--;
-                gameState.research += 10;
+                let researchGain = 10;
+                // Apply Modulo discovery effect
+                researchGain += gameState.discoveries.modulo * 5;
+                gameState.research += researchGain;
                 updateDisplay();
             }
         }
