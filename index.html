@@ -4,52 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Primes</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        #game-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        button {
-            margin: 5px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        #problem {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        #timer, #primes, #research {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="game-container">
-        <div id="timer">Time: 60s</div>
-        <div id="primes">Primes: 0</div>
-        <div id="research">Research: 0</div>
-        <div id="harvest-mode">
-            <div id="problem"></div>
-            <div id="answers"></div>
+<body class="bg-gray-100 font-sans">
+    <div id="game-container" class="container mx-auto p-4 max-w-md">
+        <div id="stats" class="mb-4 text-lg">
+            <div id="timer" class="mb-2">Time: 60s</div>
+            <div id="primes" class="mb-2">Primes: 0</div>
+            <div id="research" class="mb-2">Research: 0</div>
         </div>
-        <div id="research-mode" style="display:none;">
-            <div id="discoveries"></div>
-            <button id="start-round">Start Next Round</button>
-            <button id="shard-prime">Shard Prime</button>
+        <div id="harvest-mode">
+            <div id="problem" class="text-2xl font-bold mb-4"></div>
+            <div id="answers" class="grid grid-cols-1 gap-2"></div>
+        </div>
+        <div id="research-mode" class="hidden">
+            <div id="current-upgrades" class="mb-4"></div>
+            <div id="discoveries" class="grid grid-cols-1 gap-2"></div>
+            <button id="start-round" class="bg-blue-500 text-white p-2 rounded mt-4 w-full">Start Next Round</button>
+            <button id="shard-prime" class="bg-purple-500 text-white p-2 rounded mt-2 w-full">Shard Prime</button>
         </div>
     </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="backgroundMusic.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound">
+        <source src="correctSound.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="incorrectSound">
+        <source src="incorrectSound.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="discoverySound">
+        <source src="discoverySound.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="primeHarvestSound">
+        <source src="primeHarvestSound.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         const gameState = {
             primes: 0,
@@ -59,7 +50,8 @@
                 orderOfOperations: 0,
                 factoring: 0,
                 modulo: 0,
-                sieveOfEratosthenes: 0
+                sieveOfEratosthenes: 0,
+                absoluteValues: 0
             },
             currentMode: 'harvest',
             timer: 60,
@@ -71,7 +63,17 @@
             orderOfOperations: [30, 150, 750],
             factoring: [40, 200, 1000],
             modulo: [50, 250, 1250],
-            sieveOfEratosthenes: [60, 300, 1500]
+            sieveOfEratosthenes: [60, 300, 1500],
+            absoluteValues: [2000]
+        };
+
+        const discoveryEffects = {
+            coreProperties: 'Gain 3 additional research per correct answer',
+            orderOfOperations: 'Double research gain and introduce complex problems',
+            factoring: '50% chance to gain an extra prime',
+            modulo: 'Gain research every second and boost Shard Prime',
+            sieveOfEratosthenes: 'Automatically harvest primes periodically',
+            absoluteValues: 'Harvest primes based on absolute value of answers'
         };
 
         function updateDisplay() {
@@ -93,7 +95,6 @@
                 answer = a - b;
             }
 
-            // Apply Order of Operations discovery effect
             if (gameState.discoveries.orderOfOperations > 0 && Math.random() < 0.1 * gameState.discoveries.orderOfOperations) {
                 const c = Math.floor(Math.random() * 10) + 1;
                 problem = `${a} * ${b} + ${c}`;
@@ -116,6 +117,7 @@
             answers.forEach(ans => {
                 const button = document.createElement('button');
                 button.textContent = ans;
+                button.className = 'bg-green-500 text-white p-2 rounded w-full';
                 button.onclick = () => checkAnswer(ans, answer);
                 answersDiv.appendChild(button);
             });
@@ -123,25 +125,23 @@
 
         function checkAnswer(userAnswer, correctAnswer) {
             if (userAnswer === correctAnswer) {
+                document.getElementById('correctSound').play();
                 let researchGain = 1;
-                // Apply Core Properties discovery effect
                 researchGain += gameState.discoveries.coreProperties * 3;
-                // Apply Order of Operations discovery effect
                 if (gameState.discoveries.orderOfOperations > 0) {
                     researchGain *= 2;
                 }
                 gameState.research += researchGain;
                 
-                if (isPrime(correctAnswer)) {
+                if (isPrime(Math.abs(correctAnswer)) && (gameState.discoveries.absoluteValues > 0 || correctAnswer > 0)) {
                     gameState.primes += 1;
-                    // Apply Factoring discovery effect
+                    document.getElementById('primeHarvestSound').play();
                     if (gameState.discoveries.factoring > 0 && Math.random() < 0.5) {
                         gameState.primes += 1;
                     }
-                    // Add prime harvesting animation here
                 }
             } else {
-                // Reduce research by 1 for incorrect answers
+                document.getElementById('incorrectSound').play();
                 if (gameState.research > 0) {
                     gameState.research -= 1;
                 }
@@ -161,15 +161,17 @@
         function startRound() {
             gameState.currentMode = 'harvest';
             gameState.timer = 60;
-            document.getElementById('harvest-mode').style.display = 'block';
-            document.getElementById('research-mode').style.display = 'none';
+            document.getElementById('harvest-mode').classList.remove('hidden');
+            document.getElementById('research-mode').classList.add('hidden');
             generateProblem();
 
             const timerInterval = setInterval(() => {
                 gameState.timer--;
-                // Apply Modulo discovery effect
                 if (gameState.discoveries.modulo > 0) {
                     gameState.research += gameState.discoveries.modulo;
+                }
+                if (gameState.discoveries.sieveOfEratosthenes > 0 && gameState.timer % 10 === 0) {
+                    gameState.primes += gameState.discoveries.sieveOfEratosthenes;
                 }
                 updateDisplay();
                 if (gameState.timer <= 0) {
@@ -177,22 +179,37 @@
                     endRound();
                 }
             }, 1000);
+
+            document.getElementById('backgroundMusic').play();
         }
 
         function endRound() {
             gameState.currentMode = 'research';
-            document.getElementById('harvest-mode').style.display = 'none';
-            document.getElementById('research-mode').style.display = 'block';
+            document.getElementById('harvest-mode').classList.add('hidden');
+            document.getElementById('research-mode').classList.remove('hidden');
+            displayUpgrades();
             displayDiscoveries();
+            document.getElementById('backgroundMusic').pause();
+        }
+
+        function displayUpgrades() {
+            const upgradesDiv = document.getElementById('current-upgrades');
+            upgradesDiv.innerHTML = '<h2 class="text-xl font-bold mb-2">Current Upgrades:</h2>';
+            for (const [discovery, level] of Object.entries(gameState.discoveries)) {
+                if (level > 0) {
+                    upgradesDiv.innerHTML += `<p>${discovery} (Level ${level}): ${discoveryEffects[discovery]}</p>`;
+                }
+            }
         }
 
         function displayDiscoveries() {
             const discoveriesDiv = document.getElementById('discoveries');
             discoveriesDiv.innerHTML = '';
             for (const [discovery, level] of Object.entries(gameState.discoveries)) {
-                if (level < 3) {
+                if (level < discoveryCosts[discovery].length) {
                     const button = document.createElement('button');
                     button.textContent = `Upgrade ${discovery} (Level ${level + 1}): ${discoveryCosts[discovery][level]} research`;
+                    button.className = 'bg-yellow-500 text-white p-2 rounded w-full';
                     button.onclick = () => upgradeDiscovery(discovery);
                     discoveriesDiv.appendChild(button);
                 }
@@ -204,7 +221,9 @@
             if (gameState.research >= cost) {
                 gameState.research -= cost;
                 gameState.discoveries[discovery]++;
+                document.getElementById('discoverySound').play();
                 updateDisplay();
+                displayUpgrades();
                 displayDiscoveries();
             }
         }
@@ -213,7 +232,6 @@
             if (gameState.primes > 0) {
                 gameState.primes--;
                 let researchGain = 10;
-                // Apply Modulo discovery effect
                 researchGain += gameState.discoveries.modulo * 5;
                 gameState.research += researchGain;
                 updateDisplay();
