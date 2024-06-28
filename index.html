@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <audio id="backgroundMusic" loop>
+    <audio id="backgroundMusic">
         <source src="backgroundMusic.mp3" type="audio/mpeg">
     </audio>
     <audio id="correctSound">
@@ -120,7 +120,7 @@
             answers.forEach(ans => {
                 const button = document.createElement('button');
                 button.textContent = ans;
-                button.className = 'bg-zink-500 text-white p-2 rounded w-full';
+                button.className = 'bg-zinc-500 text-white p-2 rounded w-full';
                 button.onclick = () => checkAnswer(ans, answer);
                 answersDiv.appendChild(button);
             });
@@ -182,8 +182,6 @@
                     endRound();
                 }
             }, 1000);
-
-            document.getElementById('backgroundMusic').play();
         }
 
         function endRound() {
@@ -192,7 +190,6 @@
             document.getElementById('research-mode').classList.remove('hidden');
             displayUpgrades();
             displayDiscoveries();
-            document.getElementById('backgroundMusic').pause();
         }
 
         function displayUpgrades() {
@@ -246,6 +243,10 @@
         document.getElementById('shard-prime').onclick = shardPrime;
 
         startRound();
+
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        backgroundMusic.loop = true;
+        backgroundMusic.play();
     </script>
 </body>
 </html>
