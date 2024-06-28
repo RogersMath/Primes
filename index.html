@@ -120,7 +120,7 @@
             answers.forEach(ans => {
                 const button = document.createElement('button');
                 button.textContent = ans;
-                button.className = 'bg-green-500 text-white p-2 rounded w-full';
+                button.className = 'bg-black-500 text-white p-2 rounded w-full';
                 button.onclick = () => checkAnswer(ans, answer);
                 answersDiv.appendChild(button);
             });
