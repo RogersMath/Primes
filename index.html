@@ -40,6 +40,9 @@
     <audio id="primeHarvestSound">
         <source src="primeHarvestSound.mp3" type="audio/mpeg">
     </audio>
+    <audio id="shardSound">
+        <source src="shardSound.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         const gameState = {
@@ -230,6 +233,7 @@
 
         function shardPrime() {
             if (gameState.primes > 0) {
+                document.getElementById('shardSound').play();
                 gameState.primes--;
                 let researchGain = 10;
                 researchGain += gameState.discoveries.modulo * 5;
