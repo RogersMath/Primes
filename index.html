@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #problem {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #timer, #primes, #research {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="timer">Time: 60s</div>
+        <div id="primes">Primes: 0</div>
+        <div id="research">Research: 0</div>
+        <div id="problem"></div>
+        <div id="answers"></div>
+        <div id="discoveries"></div>
+        <button id="start-round" style="display:none;">Start Next Round</button>
+        <button id="shard-prime" style="display:none;">Shard Prime</button>
+    </div>
+    <script>
+        const gameState = {
+            primes: 0,
+            research: 0,
+            discoveries: {
+                coreProperties: 0,
+                orderOfOperations: 0,
+                factoring: 0,
+                modulo: 0,
+                sieveOfEratosthenes: 0
+            },
+            currentMode: 'harvest',
+            timer: 60,
+            problemType: 'addition'
+        };
+
+        const discoveryCosts = {
+            coreProperties: [20, 100, 500],
+            orderOfOperations: [30, 150, 750],
+            factoring: [40, 200, 1000],
+            modulo: [50, 250, 1250],
+            sieveOfEratosthenes: [60, 300, 1500]
+        };
+
+        function updateDisplay() {
+            document.getElementById('timer').textContent = `Time: ${gameState.timer}s`;
+            document.getElementById('primes').textContent = `Primes: ${gameState.primes}`;
+            document.getElementById('research').textContent = `Research: ${gameState.research}`;
+        }
+
+        function generateProblem() {
+            const a = Math.floor(Math.random() * 20) + 1;
+            const b = Math.floor(Math.random() * 20) + 1;
+            let problem, answer;
+            
+            if (Math.random() < 0.5) {
+                problem = `${a} + ${b}`;
+                answer = a + b;
+            } else {
+                problem = `${a} - ${b}`;
+                answer = a - b;
+            }
+
+            document.getElementById('problem').textContent = problem;
+            
+            const answers = [answer];
+            while (answers.length < 4) {
+                let wrongAnswer = answer + Math.floor(Math.random() * 10) - 5;
+                if (wrongAnswer !== answer && !answers.includes(wrongAnswer)) {
+                    answers.push(wrongAnswer);
+                }
+            }
+            answers.sort(() => Math.random() - 0.5);
+
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+            answers.forEach(ans => {
+                const button = document.createElement('button');
+                button.textContent = ans;
+                button.onclick = () => checkAnswer(ans, answer);
+                answersDiv.appendChild(button);
+            });
+        }
+
+        function checkAnswer(userAnswer, correctAnswer) {
+            if (userAnswer === correctAnswer) {
+                gameState.research += 1;
+                if (isPrime(correctAnswer)) {
+                    gameState.primes += 1;
+                    // Add prime harvesting animation here
+                }
+                updateDisplay();
+                generateProblem();
+            }
+        }
+
+        function isPrime(num) {
+            if (num <= 1) return false;
+            for (let i = 2; i <= Math.sqrt(num); i++) {
+                if (num % i === 0) return false;
+            }
+            return true;
+        }
+
+        function startRound() {
+            gameState.currentMode = 'harvest';
+            gameState.timer = 60;
+            document.getElementById('start-round').style.display = 'none';
+            document.getElementById('shard-prime').style.display = 'none';
+            document.getElementById('answers').style.display = 'block';
+            generateProblem();
+
+            const timerInterval = setInterval(() => {
+                gameState.timer--;
+                updateDisplay();
+                if (gameState.timer <= 0) {
+                    clearInterval(timerInterval);
+                    endRound();
+                }
+            }, 1000);
+        }
+
+        function endRound() {
+            gameState.currentMode = 'research';
+            document.getElementById('start-round').style.display = 'block';
+            document.getElementById('shard-prime').style.display = 'block';
+            document.getElementById('answers').style.display = 'none';
+            displayDiscoveries();
+        }
+
+        function displayDiscoveries() {
+            const discoveriesDiv = document.getElementById('discoveries');
+            discoveriesDiv.innerHTML = '';
+            for (const [discovery, level] of Object.entries(gameState.discoveries)) {
+                if (level < 3) {
+                    const button = document.createElement('button');
+                    button.textContent = `Upgrade ${discovery} (Level ${level + 1}): ${discoveryCosts[discovery][level]} research`;
+                    button.onclick = () => upgradeDiscovery(discovery);
+                    discoveriesDiv.appendChild(button);
+                }
+            }
+        }
+
+        function upgradeDiscovery(discovery) {
+            const cost = discoveryCosts[discovery][gameState.discoveries[discovery]];
+            if (gameState.research >= cost) {
+                gameState.research -= cost;
+                gameState.discoveries[discovery]++;
+                updateDisplay();
+                displayDiscoveries();
+            }
+        }
+
+        function shardPrime() {
+            if (gameState.primes > 0) {
+                gameState.primes--;
+                gameState.research += 10;
+                updateDisplay();
+            }
+        }
+
+        document.getElementById('start-round').onclick = startRound;
+        document.getElementById('shard-prime').onclick = shardPrime;
+
+        startRound();
+    </script>
+</body>
+</html>
