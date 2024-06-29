@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Primes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans">
     <div id="start-screen" class="container mx-auto p-4 max-w-md text-center">
         <h1 class="text-4xl font-bold mb-4">Primes</h1>
-        <button id="start-game" class="bg-zinc-500 text-white p-2 rounded w-full text-xl">Start Game</button>
+        <button id="start-game" class="bg-green-500 text-white p-2 rounded w-full text-xl">Start Game</button>
     </div>
 
     <div id="game-container" class="container mx-auto p-4 max-w-md hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">Primes</h1>
+            <button id="sound-toggle" class="text-2xl"><i class="fas fa-volume-up"></i></button>
+        </div>
+        <div id="round-info" class="text-xl font-bold text-center mb-4"></div>
         <div id="stats" class="mb-4 text-lg">
             <div id="timer" class="mb-2">Time: 60s</div>
             <div id="primes" class="mb-2">Primes: 0</div>
@@ -27,6 +33,10 @@
             <div id="discoveries" class="grid grid-cols-1 gap-2"></div>
             <button id="start-round" class="bg-blue-500 text-white p-2 rounded mt-4 w-full">Start Next Round</button>
             <button id="shard-prime" class="bg-purple-500 text-white p-2 rounded mt-2 w-full">Shard Prime</button>
+        </div>
+        <div id="victory-mode" class="hidden text-center">
+            <h2 class="text-3xl font-bold mb-4">Victory!</h2>
+            <div id="victory-stats" class="text-lg"></div>
         </div>
     </div>
 
@@ -63,16 +73,20 @@
             },
             currentMode: 'harvest',
             timer: 60,
-            problemType: 'addition'
+            problemType: 'addition',
+            round: 0,
+            totalProblems: 0,
+            correctProblems: 0,
+            soundEnabled: true
         };
 
         const discoveryCosts = {
-            coreProperties: [20, 100, 500],
-            orderOfOperations: [30, 150, 750],
-            factoring: [40, 200, 1000],
+            coreProperties: [50, 250, 1250],
+            orderOfOperations: [50, 250, 1250],
+            factoring: [50, 250, 1250],
             modulo: [50, 250, 1250],
-            sieveOfEratosthenes: [60, 300, 1500],
-            absoluteValues: [2000]
+            sieveOfEratosthenes: [50, 250, 1250],
+            absoluteValues: [50, 250, 1250]
         };
 
         const discoveryEffects = {
@@ -88,6 +102,7 @@
             document.getElementById('timer').textContent = `Time: ${gameState.timer}s`;
             document.getElementById('primes').textContent = `Primes: ${gameState.primes}`;
             document.getElementById('research').textContent = `Research: ${gameState.research}`;
+            document.getElementById('round-info').textContent = `Round ${gameState.round}`;
         }
 
         function generateProblem() {
@@ -129,33 +144,37 @@
                 button.onclick = () => checkAnswer(ans, answer);
                 answersDiv.appendChild(button);
             });
+
+            gameState.totalProblems++;
         }
 
         function checkAnswer(userAnswer, correctAnswer) {
             if (userAnswer === correctAnswer) {
-                document.getElementById('correctSound').play();
+                playSound('correctSound');
                 let researchGain = 1;
                 researchGain += gameState.discoveries.coreProperties * 3;
                 if (gameState.discoveries.orderOfOperations > 0) {
                     researchGain *= 2;
                 }
                 gameState.research += researchGain;
+                gameState.correctProblems++;
                 
                 if (isPrime(Math.abs(correctAnswer)) && (gameState.discoveries.absoluteValues > 0 || correctAnswer > 0)) {
                     gameState.primes += 1;
-                    document.getElementById('primeHarvestSound').play();
+                    playSound('primeHarvestSound');
                     if (gameState.discoveries.factoring > 0 && Math.random() < 0.5) {
                         gameState.primes += 1;
                     }
                 }
             } else {
-                document.getElementById('incorrectSound').play();
+                playSound('incorrectSound');
                 if (gameState.research > 0) {
                     gameState.research -= 1;
                 }
             }
             updateDisplay();
             generateProblem();
+            checkVictory();
         }
 
         function isPrime(num) {
@@ -169,9 +188,12 @@
         function startRound() {
             gameState.currentMode = 'harvest';
             gameState.timer = 60;
+            gameState.round++;
             document.getElementById('harvest-mode').classList.remove('hidden');
             document.getElementById('research-mode').classList.add('hidden');
+            document.getElementById('victory-mode').classList.add('hidden');
             generateProblem();
+            updateDisplay();
 
             const timerInterval = setInterval(() => {
                 gameState.timer--;
@@ -226,16 +248,17 @@
             if (gameState.research >= cost) {
                 gameState.research -= cost;
                 gameState.discoveries[discovery]++;
-                document.getElementById('discoverySound').play();
+                playSound('discoverySound');
                 updateDisplay();
                 displayUpgrades();
                 displayDiscoveries();
+                checkVictory();
             }
         }
 
         function shardPrime() {
             if (gameState.primes > 0) {
-                document.getElementById('shardSound').play();
+                playSound('shardSound');
                 gameState.primes--;
                 let researchGain = 10;
                 researchGain += gameState.discoveries.modulo * 5;
@@ -247,15 +270,53 @@
         function initGame() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-container').classList.remove('hidden');
-            const backgroundMusic = document.getElementById('backgroundMusic');
-            backgroundMusic.loop = true;
-            backgroundMusic.play().catch(error => console.log("Audio play failed:", error));
+            playSound('backgroundMusic', true);
             startRound();
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const icon = document.querySelector('#sound-toggle i');
+            icon.className = gameState.soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            document.querySelectorAll('audio').forEach(audio => {
+                audio.muted = !gameState.soundEnabled;
+            });
+        }
+
+        function playSound(id, loop = false) {
+            if (gameState.soundEnabled) {
+                const audio = document.getElementById(id);
+                audio.loop = loop;
+                audio.play().catch(error => console.log("Audio play failed:", error));
+            }
+        }
+
+        function checkVictory() {
+            const allDiscoveriesMaxed = Object.values(gameState.discoveries).every(level => level === 3);
+            if (allDiscoveriesMaxed && gameState.primes >= 100) {
+                gameState.currentMode = 'victory';
+                document.getElementById('harvest-mode').classList.add('hidden');
+                document.getElementById('research-mode').classList.add('hidden');
+                document.getElementById('victory-mode').classList.remove('hidden');
+                displayVictoryStats();
+            }
+        }
+
+        function displayVictoryStats() {
+            const victoryStatsDiv = document.getElementById('victory-stats');
+            const percentCorrect = (gameState.correctProblems / gameState.totalProblems * 100).toFixed(2);
+            victoryStatsDiv.innerHTML = `
+                <p>Rounds Played: ${gameState.round}</p>
+                <p>Total Problems: ${gameState.totalProblems}</p>
+                <p>Correct Answers: ${gameState.correctProblems}</p>
+                <p>Accuracy: ${percentCorrect}%</p>
+            `;
         }
 
         document.getElementById('start-game').onclick = initGame;
         document.getElementById('start-round').onclick = startRound;
         document.getElementById('shard-prime').onclick = shardPrime;
+        document.getElementById('sound-toggle').onclick = toggleSound;
     </script>
 </body>
 </html>
