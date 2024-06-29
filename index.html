@@ -89,6 +89,15 @@
             absoluteValues: [50, 250, 1250]
         };
 
+        const discoveryNames = {
+            coreProperties: 'Core Properties (Associative, Commutative, Distributive)',
+            orderOfOperations: 'Order of Operations (PEMDAS)',
+            factoring: 'Factoring',
+            modulo: 'Modulo (Remainder)',
+            sieveOfEratosthenes: 'Sieve of Eratosthenes',
+            absoluteValues: 'Absolute Values'
+        };
+
         const discoveryEffects = {
             coreProperties: 'Gain 3 additional research per correct answer',
             orderOfOperations: 'Double research gain and introduce complex problems',
@@ -235,7 +244,7 @@
             for (const [discovery, level] of Object.entries(gameState.discoveries)) {
                 if (level < discoveryCosts[discovery].length) {
                     const button = document.createElement('button');
-                    button.textContent = `Upgrade ${discovery} (Level ${level + 1}): ${discoveryCosts[discovery][level]} research`;
+                    button.textContent = `Upgrade ${discoveryNames[discovery]} (Level ${level + 1}): ${discoveryCosts[discovery][level]} research`;
                     button.className = 'bg-yellow-500 text-white p-2 rounded w-full';
                     button.onclick = () => upgradeDiscovery(discovery);
                     discoveriesDiv.appendChild(button);
