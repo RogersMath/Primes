@@ -1,6 +1,7 @@
 import { gameState, discoveryNames, discoveryEffects, discoveryCosts } from './gameState.js';
 import { checkAnswer } from './harvestMode.js';
-import { upgradeDiscovery, startLongTermStudy } from './researchMode.js';
+import { upgradeDiscovery, startLongTermStudy, shardPrime } from './researchMode.js';
+import { startRound } from './main.js';
 
 function updateDisplay() {
     document.getElementById('timer').textContent = `Time: ${gameState.timer}s`;
@@ -44,6 +45,19 @@ function displayUpgrades() {
 function displayDiscoveries() {
     const discoveriesDiv = document.getElementById('discoveries');
     discoveriesDiv.innerHTML = '';
+
+    // Shard Prime button
+    const shardPrimeDiv = document.createElement('div');
+    shardPrimeDiv.className = 'mb-2';
+    const shardPrimeButton = document.createElement('button');
+    shardPrimeButton.textContent = 'Shard Prime';
+    shardPrimeButton.className = 'bg-purple-500 text-white p-2 rounded w-full';
+    shardPrimeButton.onclick = shardPrime;
+    const shardPrimeInfo = createInfoButton('Converts a Prime into Research. Boosted by Modulo discovery.');
+    shardPrimeDiv.appendChild(shardPrimeButton);
+    shardPrimeDiv.appendChild(shardPrimeInfo);
+    discoveriesDiv.appendChild(shardPrimeDiv);
+
     for (const [discovery, level] of Object.entries(gameState.discoveries)) {
         if (level < discoveryCosts[discovery].length) {
             const upgradeDiv = document.createElement('div');
@@ -54,32 +68,40 @@ function displayDiscoveries() {
             button.className = 'bg-yellow-500 text-white p-2 rounded w-full';
             button.onclick = () => upgradeDiscovery(discovery);
             
-            const infoButton = document.createElement('button');
-            infoButton.innerHTML = '<i class="fas fa-info-circle"></i>';
-            infoButton.className = 'ml-2 text-blue-500';
-            infoButton.onclick = () => toggleInfo(discovery);
-            
-            const infoDiv = document.createElement('div');
-            infoDiv.id = `info-${discovery}`;
-            infoDiv.className = 'hidden mt-2 text-sm';
-            infoDiv.textContent = Array.isArray(discoveryEffects[discovery]) ? discoveryEffects[discovery][level] : discoveryEffects[discovery];
+            const infoButton = createInfoButton(Array.isArray(discoveryEffects[discovery]) ? discoveryEffects[discovery][level] : discoveryEffects[discovery]);
             
             upgradeDiv.appendChild(button);
             upgradeDiv.appendChild(infoButton);
-            upgradeDiv.appendChild(infoDiv);
             discoveriesDiv.appendChild(upgradeDiv);
         }
     }
+
+    // Long Term Study button
+    const longTermStudyDiv = document.createElement('div');
+    longTermStudyDiv.className = 'mb-2';
     const longTermStudyButton = document.createElement('button');
     longTermStudyButton.textContent = 'Long Term Study: 200 research';
     longTermStudyButton.className = 'bg-green-500 text-white p-2 rounded w-full';
-    longTermStudyButton.onclick = () => startLongTermStudy();
-    discoveriesDiv.appendChild(longTermStudyButton);
+    longTermStudyButton.onclick = startLongTermStudy;
+    const longTermStudyInfo = createInfoButton('Invest in a study that will yield 1000 Research after 5 rounds.');
+    longTermStudyDiv.appendChild(longTermStudyButton);
+    longTermStudyDiv.appendChild(longTermStudyInfo);
+    discoveriesDiv.appendChild(longTermStudyDiv);
+
+    // Start Next Round button
+    const startRoundButton = document.createElement('button');
+    startRoundButton.textContent = 'Start Next Round';
+    startRoundButton.className = 'bg-blue-500 text-white p-2 rounded w-full mt-4';
+    startRoundButton.onclick = startRound;
+    discoveriesDiv.appendChild(startRoundButton);
 }
 
-function toggleInfo(discovery) {
-    const infoDiv = document.getElementById(`info-${discovery}`);
-    infoDiv.classList.toggle('hidden');
+function createInfoButton(infoText) {
+    const infoButton = document.createElement('button');
+    infoButton.innerHTML = '<i class="fas fa-info-circle"></i>';
+    infoButton.className = 'ml-2 text-blue-500';
+    infoButton.onclick = () => alert(infoText);
+    return infoButton;
 }
 
 function displayVictoryStats() {
