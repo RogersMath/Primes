@@ -1,13 +1,17 @@
 import { gameState, initializeGameState } from './gameState.js';
-import { updateDisplay, displayUpgrades, displayDiscoveries, displayVictoryStats } from './ui.js';
+import { updateDisplay, displayUpgrades, displayDiscoveries, displayVictoryStats, showMenu, hideMenu } from './ui.js';
 import { playSound } from './sound.js';
 import { startHarvestMode } from './harvestMode.js';
+
+let timerInterval;
 
 function initGame() {
     initializeGameState();
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-container').classList.remove('hidden');
     playSound('backgroundMusic', true);
+    document.getElementById('menu-button').addEventListener('click', toggleMenu);
+    document.getElementById('close-menu').addEventListener('click', toggleMenu);
     startRound();
 }
 
@@ -21,8 +25,12 @@ function startRound() {
     document.getElementById('menu-mode').classList.add('hidden');
     startHarvestMode();
     updateDisplay();
+    startTimer();
+}
 
-    const timerInterval = setInterval(() => {
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
         gameState.timer--;
         if (gameState.discoveries.modulo > 0) {
             gameState.research += gameState.discoveries.modulo;
@@ -72,4 +80,18 @@ function checkVictory() {
     }
 }
 
-export { initGame, startRound, endRound, checkVictory };
+function toggleMenu() {
+    if (document.getElementById('menu-mode').classList.contains('hidden')) {
+        if (gameState.currentMode === 'harvest') {
+            clearInterval(timerInterval);
+        }
+        showMenu();
+    } else {
+        hideMenu();
+        if (gameState.currentMode === 'harvest') {
+            startTimer();
+        }
+    }
+}
+
+export { initGame, startRound, endRound, checkVictory, toggleMenu };
