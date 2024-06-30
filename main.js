@@ -1,7 +1,7 @@
 import { gameState, initializeGameState } from './gameState.js';
-import { generateProblem } from './problem.js';
-import { updateDisplay, displayUpgrades, displayDiscoveries } from './ui.js';
+import { updateDisplay, displayUpgrades, displayDiscoveries, displayVictoryStats } from './ui.js';
 import { playSound } from './sound.js';
+import { startHarvestMode } from './harvestMode.js';
 
 function initGame() {
     initializeGameState();
@@ -19,7 +19,7 @@ function startRound() {
     document.getElementById('research-mode').classList.add('hidden');
     document.getElementById('victory-mode').classList.add('hidden');
     document.getElementById('menu-mode').classList.add('hidden');
-    generateProblem();
+    startHarvestMode();
     updateDisplay();
 
     const timerInterval = setInterval(() => {
