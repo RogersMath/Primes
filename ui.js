@@ -116,4 +116,42 @@ function displayVictoryStats() {
     `;
 }
 
-export { updateDisplay, displayAnswers, displayUpgrades, displayDiscoveries, displayVictoryStats };
+function displayMenuStats() {
+    const menuStatsDiv = document.getElementById('menu-stats');
+    const percentCorrect = (gameState.correctProblems / gameState.totalProblems * 100).toFixed(2) || 0;
+    menuStatsDiv.innerHTML = `
+        <p>Rounds Played: ${gameState.round}</p>
+        <p>Total Problems: ${gameState.totalProblems}</p>
+        <p>Correct Answers: ${gameState.correctProblems}</p>
+        <p>Accuracy: ${percentCorrect}%</p>
+        <p>Completed Branches: ${gameState.completedBranches}</p>
+    `;
+}
+
+function showMenu() {
+    document.getElementById('harvest-mode').classList.add('hidden');
+    document.getElementById('research-mode').classList.add('hidden');
+    document.getElementById('victory-mode').classList.add('hidden');
+    document.getElementById('menu-mode').classList.remove('hidden');
+    displayMenuStats();
+}
+
+function hideMenu() {
+    document.getElementById('menu-mode').classList.add('hidden');
+    if (gameState.currentMode === 'harvest') {
+        document.getElementById('harvest-mode').classList.remove('hidden');
+    } else if (gameState.currentMode === 'research') {
+        document.getElementById('research-mode').classList.remove('hidden');
+    }
+}
+
+export { 
+    updateDisplay, 
+    displayAnswers, 
+    displayUpgrades, 
+    displayDiscoveries, 
+    displayVictoryStats, 
+    displayMenuStats,
+    showMenu,
+    hideMenu
+};
