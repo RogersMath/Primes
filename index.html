@@ -12,12 +12,11 @@
         <h1 class="text-4xl font-bold mb-4">Primes</h1>
         <p class="mb-4">Victory Conditions:</p>
         <ul class="list-disc list-inside mb-4">
-            <li>Complete the full tech tree</li>
+            <li>Complete 3 full branches of knowledge</li>
             <li>Stockpile 100 Primes</li>
         </ul>
         <button id="start-game" class="bg-zinc-500 text-white p-2 rounded w-full text-xl">Start Game</button>
     </div>
-
     <div id="game-container" class="container mx-auto p-4 max-w-md hidden">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">Primes</h1>
@@ -41,7 +40,6 @@
             <div id="current-upgrades" class="mb-4"></div>
             <div id="discoveries" class="grid grid-cols-1 gap-2"></div>
             <button id="start-round" class="bg-blue-500 text-white p-2 rounded mt-4 w-full">Start Next Round</button>
-            
         </div>
         <div id="victory-mode" class="hidden text-center">
             <h2 class="text-3xl font-bold mb-4">Victory!</h2>
@@ -53,7 +51,6 @@
             <button id="close-menu" class="bg-blue-500 text-white p-2 rounded mt-4 w-full">Close Menu</button>
         </div>
     </div>
-
     <audio id="backgroundMusic">
         <source src="backgroundMusic.mp3" type="audio/mpeg">
     </audio>
@@ -72,7 +69,12 @@
     <audio id="shardSound">
         <source src="shardSound.mp3" type="audio/mpeg">
     </audio>
+    <script type="module">
+    import { initGame } from './main.js';
+    import { toggleSound } from './sound.js';
 
-    <script src="script.js"></script>
+    document.getElementById('start-game').onclick = initGame;
+    document.getElementById('sound-toggle').onclick = toggleSound;
+</script>
 </body>
 </html>
