@@ -20,10 +20,16 @@ const gameState = {
     soundEnabled: true,
     valueRange: 10,
     completedBranches: 0,
-    difficultyCounter: 1
+    difficultyCounter: 1,
+    settings: {
+        variableDifficulty: false,
+        manualPrimeCollection: false,
+        startingDifficulty: 1,
+        longTermResearchAvailable: true
+    }
 };
 
-// Rest of the file remains the same...
+// ... (rest of the file remains the same)
 
 function initializeGameState() {
     Object.assign(gameState, {
@@ -48,7 +54,7 @@ function initializeGameState() {
         soundEnabled: true,
         valueRange: 10,
         completedBranches: 0,
-        difficultyCounter: 1
+        difficultyCounter: gameState.settings.startingDifficulty
     });
 }
 
