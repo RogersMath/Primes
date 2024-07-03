@@ -6,7 +6,7 @@ import { playSound } from './sound.js';
 import { checkVictory } from './main.js';
 
 function startHarvestMode() {
-    const { problem, answer } = generateProblem();
+    const { problem, answer } = generateProblem(gameState.difficultyCounter);
     document.getElementById('problem').textContent = problem;
     displayAnswers(answer);
 }
@@ -35,7 +35,11 @@ function checkAnswer(userAnswer, correctAnswer) {
         if (gameState.research > 0) {
             gameState.research -= 1;
         }
+        if (gameState.primes > 0) {
+            gameState.primes -= 1;
+        }
     }
+    gameState.totalProblems++;
     updateDisplay();
     startHarvestMode();
     checkVictory();
